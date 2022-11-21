@@ -8,4 +8,4 @@ class ResponseOnlyPagination(PageNumberPagination):
     
 
 class RecipesPagination(PageNumberPagination):
-    page_size = 6
+    page_size_query_param = 'limit'

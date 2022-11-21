@@ -64,6 +64,9 @@ class Recipe(models.Model):
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
     
+    def recipe_favorited_count(self):
+        return Favorite.objects.filter(recipe=self).count()
+    
     def __str__(self):
         return self.name
 

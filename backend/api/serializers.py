@@ -11,6 +11,19 @@ from users.serializers import UserSerializer
 User = get_user_model()
 
 
+
+
+
+class Base64ImageField(serializers.ImageField):
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:image'):
+            format, imgstr = data.split(';base64,')
+            ext = format.split('/')[-1]
+            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
+
+        return super().to_internal_value(data)
+
+
 class IngredientSerializer(serializers.ModelSerializer):
     """Ingredient Serailizer."""
 
@@ -27,14 +40,25 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'color', 'slug')
 
 
-class Base64ImageField(serializers.ImageField):
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
+class IngredientAmountSerializer(serializers.ModelSerializer):
+    """Ingredient and its Amount in a Recipe."""
 
-        return super().to_internal_value(data)
+    id = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    measurement_unit = serializers.SerializerMethodField()
+
+    class Meta:
+        model = IngredientAmount
+        fields = ('id', 'name', 'measurement_unit', 'amount')
+    
+    def get_id(self, obj):
+        return obj.ingredient.id
+
+    def get_name(self, obj):
+        return obj.ingredient.name
+
+    def get_measurement_unit(self, obj):
+        return obj.ingredient.measurement_unit
 
 
 class AddIngredientAmountSerializer(serializers.ModelSerializer):
@@ -56,31 +80,14 @@ class AddIngredientAmountSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class IngredientAmountSerializer(serializers.ModelSerializer):
-    """Ingredient and its Amount in a Recipe."""
-
-    name = serializers.SerializerMethodField()
-    measurement_unit = serializers.SerializerMethodField()
-
-    class Meta:
-        model = IngredientAmount
-        fields = ('id', 'name', 'measurement_unit', 'amount')
-    
-    def get_name(self, obj):
-        return obj.ingredient.name
-
-    def get_measurement_unit(self, obj):
-        return obj.ingredient.measurement_unit
-
-
 class RecipeListSerializer(serializers.ModelSerializer):
     """List of Recipes Serializer."""
     
-    tags = TagSerializer(many=True)
-    author = UserSerializer()
-    ingredients = serializers.SerializerMethodField()
-    is_favorited = serializers.SerializerMethodField()
-    is_in_shopping_cart = serializers.SerializerMethodField()
+    tags = TagSerializer(many=True, read_only=True)
+    author = UserSerializer(read_only=True)
+    ingredients = serializers.SerializerMethodField(read_only=True)
+    is_favorited = serializers.SerializerMethodField(read_only=True)
+    is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Recipe
@@ -88,6 +95,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
             'id', 'tags', 'author', 'ingredients', 'is_favorited',
             'is_in_shopping_cart', 'name', 'image', 'text', 'cooking_time'
         )
+        read_only_fields = ('image',)
 
     def get_ingredients(self, obj):
         return IngredientAmountSerializer(
@@ -145,7 +153,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         for tag in tags:
             recipe.tags.add(tag)
 
-
     def create(self, validated_data):
         author = self.context['request'].user
         ingredients = validated_data.pop('ingredients')
@@ -156,8 +163,14 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
         self.create_ingredients(recipe, ingredients)
         self.add_tags(recipe, tags)
-
         return recipe
+
+    def update(self, instance, validated_data):
+        instance.tags.clear()
+        IngredientAmount.objects.filter(recipe=instance).delete()
+        self.add_tags(instance, validated_data.pop('tags'))
+        self.create_ingredients(instance, validated_data.pop('ingredients'))
+        return super().update(instance, validated_data)
 
 
 class FavoriteSerializer(serializers.ModelSerializer):

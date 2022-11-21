@@ -83,7 +83,8 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
 class SubscriptionListSerializer(UserSerializer):
     "List Of Subscribed Users."
 
-    recipes = ShortRecipeSerializer(many=True)
+    # recipes = ShortRecipeSerializer(many=True)
+    recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -92,6 +93,12 @@ class SubscriptionListSerializer(UserSerializer):
             'email', 'id', 'username', 'first_name', 'last_name',
             'is_subscribed', 'recipes', 'recipes_count'
         )
+
+    def get_recipes(self, obj):
+        num = int(self.context['request'].query_params['recipes_limit'])
+        queryset = Recipe.objects.all()[:num]
+        list = ShortRecipeSerializer(queryset, many=True).data
+        return list
 
     def get_recipes_count(self, obj):
         return Recipe.objects.filter(author=obj).count()

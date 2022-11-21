@@ -7,6 +7,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Subscribtion
+from .pagination import UsersPagination
 from .serializers import (ChangePasswordSerializer,
                           SubscriptionSerializer,
                           SubscriptionListSerializer,
@@ -18,6 +19,7 @@ User = get_user_model()
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    pagination_class = UsersPagination
 
     def get_permissions(self):
         if self.request.method == 'POST':
@@ -74,7 +76,7 @@ class UserViewSet(viewsets.ModelViewSet):
         detail=False,
         permission_classes=(IsAuthenticated,),
         url_path='subscriptions',
-        serializer_class=SubscriptionListSerializer
+        serializer_class=SubscriptionListSerializer,
     )
     def subscriptions(self, request):
         return super().list(request)
@@ -89,7 +91,6 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = ChangePasswordSerializer(data=request.data)
 
         if serializer.is_valid():
-            # Check old password
             old_password = serializer.data.get("current_password")
             if not self.object.check_password(old_password):
                 return Response({"current_password": ["Неверный пароль"]}, 
@@ -99,3 +100,4 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
