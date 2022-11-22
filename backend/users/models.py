@@ -58,6 +58,6 @@ class Subscribtion(models.Model):
                 name='unique follow',
             )
         ]
-    
+
     def __str__(self) -> str:
         return f'{self.user.username} - {self.author.username}'

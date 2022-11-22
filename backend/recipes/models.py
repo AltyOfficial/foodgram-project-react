@@ -6,7 +6,7 @@ User = get_user_model()
 
 
 class Ingredient(models.Model):
-    name= models.CharField(max_length=200, blank=False, null=False)
+    name = models.CharField(max_length=200, blank=False, null=False)
     measurement_unit = models.CharField(
         max_length=200,
         blank=False,
@@ -17,13 +17,13 @@ class Ingredient(models.Model):
         ordering = ['name']
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
-    
+
     def __str__(self):
         return self.name
 
 
 class Tag(models.Model):
-    name= models.CharField(max_length=200, blank=False, null=False)
+    name = models.CharField(max_length=200, blank=False, null=False)
     color = models.CharField(max_length=7, blank=False, null=False)
     slug = models.SlugField(
         max_length=200,
@@ -36,7 +36,7 @@ class Tag(models.Model):
         ordering = ['name']
         verbose_name = 'Тэг'
         verbose_name_plural = 'Тэги'
-    
+
     def __str__(self):
         return self.name
 
@@ -63,10 +63,10 @@ class Recipe(models.Model):
         ordering = ['-pub_date']
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
-    
+
     def recipe_favorited_count(self):
         return Favorite.objects.filter(recipe=self).count()
-    
+
     def __str__(self):
         return self.name
 
@@ -90,7 +90,7 @@ class IngredientAmount(models.Model):
         ordering = ['-amount']
         verbose_name = 'Ингредиент и его количество'
         verbose_name_plural = 'Ингредиенты и их количество'
-    
+
     def __str__(self):
         return f'{self.recipe} = {self.ingredient} - {self.amount}'
 
@@ -110,7 +110,7 @@ class Favorite(models.Model):
     class Meta:
         verbose_name = 'Избранный рецепт у пользователя'
         verbose_name_plural = 'Избранные рецепт у пользователей'
-    
+
     def __str__(self):
         return f'{self.recipe} в избранном у {self.user}'
 
@@ -130,6 +130,6 @@ class ShoppingCart(models.Model):
     class Meta:
         verbose_name = 'Рецепт в корзине у пользователя'
         verbose_name_plural = 'Рецепты в корзине у пользователей'
-    
+
     def __str__(self):
         return f'{self.recipe} в корзине у {self.user}'

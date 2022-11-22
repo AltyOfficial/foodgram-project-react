@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
-from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -12,6 +11,7 @@ from .serializers import (ChangePasswordSerializer,
                           SubscriptionSerializer,
                           SubscriptionListSerializer,
                           UserSerializer)
+
 
 User = get_user_model()
 
@@ -26,7 +26,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return (AllowAny(),)
 
         return (IsAuthenticated(),)
-    
+
     def get_queryset(self):
         if self.action == 'subscriptions':
             return User.objects.filter(subscribing__user=self.request.user)
@@ -45,13 +45,13 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
     @action(
         methods=['POST', 'DELETE'],
         detail=True,
         permission_classes=(IsAuthenticated,)
     )
-    def subscribe(self, request, pk):    
+    def subscribe(self, request, pk):
         if request.method == 'POST':
             data = {'user': request.user.id, 'author': pk}
             context = {'request': request}
@@ -60,7 +60,7 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
+
         else:
             user = request.user
             user_to_unsubscribe = get_object_or_404(User, id=pk)
@@ -70,7 +70,7 @@ class UserViewSet(viewsets.ModelViewSet):
             subscription.delete()
 
             return Response(status=status.HTTP_204_NO_CONTENT)
-    
+
     @action(
         methods=('GET',),
         detail=False,
@@ -80,7 +80,7 @@ class UserViewSet(viewsets.ModelViewSet):
     )
     def subscriptions(self, request):
         return super().list(request)
-    
+
     @action(
         methods=('POST',),
         detail=False,
@@ -93,11 +93,10 @@ class UserViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             old_password = serializer.data.get("current_password")
             if not self.object.check_password(old_password):
-                return Response({"current_password": ["Неверный пароль"]}, 
+                return Response({"current_password": ["Неверный пароль"]},
                                 status=status.HTTP_400_BAD_REQUEST)
             self.object.set_password(serializer.data.get("new_password"))
             self.object.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-

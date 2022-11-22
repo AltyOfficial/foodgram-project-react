@@ -1,10 +1,10 @@
 from django.contrib.auth import get_user_model, password_validation
-from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from recipes.models import Recipe
 
 from .models import Subscribtion
+
 
 User = get_user_model()
 
@@ -21,7 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
             'is_subscribed', 'password'
         )
         extra_kwargs = {'password': {'write_only': True}}
-    
+
     def get_is_subscribed(self, obj):
         current_user = self.context['request'].user
         user_to_subscribe = obj.id
@@ -52,7 +52,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscribtion
         fields = ('user', 'author')
-    
+
     def validate(self, attrs):
         user = attrs['user']
         user_to_subscribe = attrs['author']
@@ -68,7 +68,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Вы уже подписаны на данного пользователя.'
             )
-        
+
         return attrs
 
 

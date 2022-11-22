@@ -3,6 +3,7 @@ from django.contrib import admin
 from .models import (Favorite, Ingredient, IngredientAmount,
                      Recipe, ShoppingCart, Tag)
 
+
 class RecipeAdmin(admin.ModelAdmin):
     fields = [
         'tags', 'author', 'ingredients', 'name', 'image', 'text',
