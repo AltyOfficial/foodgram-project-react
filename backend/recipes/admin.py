@@ -1,7 +1,15 @@
 from django.contrib import admin
 
+from .forms import TagForm
 from .models import (Favorite, Ingredient, IngredientAmount,
                      Recipe, ShoppingCart, Tag)
+
+
+class TagAdmin(admin.ModelAdmin):
+    form = TagForm
+    fields = [
+        'name', 'color', 'slug'
+    ]
 
 
 class RecipeAdmin(admin.ModelAdmin):
@@ -20,4 +28,4 @@ admin.site.register(Ingredient)
 admin.site.register(IngredientAmount)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(ShoppingCart)
-admin.site.register(Tag)
+admin.site.register(Tag, TagAdmin)

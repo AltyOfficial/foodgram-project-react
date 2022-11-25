@@ -1,9 +1,13 @@
-# import os
+import base64
 
+from django.core.files.base import ContentFile
 from django.http import FileResponse
+from django.shortcuts import get_object_or_404
 from fpdf import FPDF
+from rest_framework import serializers, status
+from rest_framework.response import Response
 
-from recipes.models import IngredientAmount
+from recipes.models import IngredientAmount, Recipe
 from backend.settings import BASE_DIR
 
 
@@ -30,10 +34,6 @@ def create_pdf_file(request):
         'DejaVu', '', f'{BASE_DIR}/fonts/DejaVuSansCondensed.ttf', uni=True
     )
     pdf.set_font('DejaVu', '', 14)
-
-    # Добавление картинки, разберусь позже
-    # pdf.image(f'{BASE_DIR}\media\\recipes\image\image_40.png', w=80, h=80)
-
     pdf.cell(40, 10, 'Ваш список покупок', 0, 1)
     pdf.cell(40, 10, '', 0, 1)
     pdf.set_font('DejaVu', '', 14)
@@ -58,7 +58,28 @@ def create_pdf_file(request):
     )
 
 
-# def remove_pdf_file():
-#     file = BASE_DIR / 'shopping_cart.pdf'
-#     if file:
-#         os.remove(file)
+def execute_cart_favorite(request, pk, serializer, model):
+    if request.method == 'POST':
+        data = {'user': request.user.id, 'recipe': pk}
+        serializer = serializer(data=data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    user = request.user
+    recipe = get_object_or_404(Recipe, id=pk)
+    obj = get_object_or_404(model, user=user, recipe=recipe)
+    obj.delete()
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class Base64ImageField(serializers.ImageField):
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:image'):
+            format, imgstr = data.split(';base64,')
+            ext = format.split('/')[-1]
+            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
+
+        return super().to_internal_value(data)

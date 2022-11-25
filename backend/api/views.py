@@ -14,7 +14,7 @@ from .permissions import IsAuthorOrReadOnly
 from .serializers import (FavoriteSerializer, IngredientSerializer,
                           RecipeSerializer, RecipeListSerializer,
                           ShoppingCartSerializer, TagSerializer)
-from .utils import create_pdf_file
+from .utils import create_pdf_file, execute_cart_favorite
 
 
 User = get_user_model()
@@ -56,22 +56,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,),
     )
     def favorite(self, request, pk):
-        if request.method == 'POST':
-            data = {'user': request.user.id, 'recipe': pk}
-            serializer = FavoriteSerializer(
-                data=data, context={'request': request}
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        user = request.user
-        recipe = get_object_or_404(Recipe, id=pk)
-        favorite = get_object_or_404(Favorite, user=user, recipe=recipe)
-        favorite.delete()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        response = execute_cart_favorite(
+            request, pk, FavoriteSerializer, Favorite
+        )
+        return response
 
     @action(
         methods=['POST', 'DELETE'],
@@ -79,22 +67,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,),
     )
     def shopping_cart(self, request, pk):
-        if request.method == 'POST':
-            data = {'user': request.user.id, 'recipe': pk}
-            serializer = ShoppingCartSerializer(
-                data=data, context={'request': request}
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        user = request.user
-        recipe = get_object_or_404(Recipe, id=pk)
-        favorite = get_object_or_404(ShoppingCart, user=user, recipe=recipe)
-        favorite.delete()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        response = execute_cart_favorite(
+            request, pk, ShoppingCartSerializer, ShoppingCart
+        )
+        return response
 
     @action(
         methods=['GET'],
