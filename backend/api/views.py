@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
-from django.http import HttpResponse
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -13,7 +12,7 @@ from .permissions import IsAuthorOrReadOnly
 from .serializers import (FavoriteSerializer, IngredientSerializer,
                           RecipeSerializer, RecipeListSerializer,
                           ShoppingCartSerializer, TagSerializer)
-from .utils import create_pdf_file, execute_cart_favorite
+from .utils import create_pdf_file, create_text_file, execute_cart_favorite
 
 
 User = get_user_model()
@@ -82,7 +81,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,)
     )
     def download_shopping_cart(self, request):
-        # file = create_pdf_file(request)
-        # return file
-        content = 'string'
-        return HttpResponse(content, content_type='text/plain; charset=utf8')
+        file = create_text_file(request)
+        return file
+        # content = 'string'
+        # return HttpResponse(content, content_type='text/plain; charset=utf8')
