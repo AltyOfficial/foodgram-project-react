@@ -1,10 +1,9 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, viewsets
+from django.http import HttpResponse
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
 
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 
@@ -38,11 +37,16 @@ class IngredientViewSet(viewsets.ModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializer
+    serializer_class = RecipeListSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = RecipeFilter
     pagination_class = RecipesPagination
     permission_classes = (IsAuthorOrReadOnly,)
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return RecipeListSerializer
+        return RecipeSerializer
 
     def get_serializer_class(self):
         if self.request.method == 'POST' or self.request.method == 'PATCH':
@@ -78,5 +82,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,)
     )
     def download_shopping_cart(self, request):
-        file = create_pdf_file(request)
-        return file
+        # file = create_pdf_file(request)
+        # return file
+        content = 'string'
+        return HttpResponse(content, content_type='text/plain; charset=utf8')

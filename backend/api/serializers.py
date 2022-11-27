@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from recipes.models import (Favorite, Ingredient, IngredientAmount,
                             Recipe, ShoppingCart, Tag)
-from users.serializers import UserSerializer
+from users.serializers import UserSerializer, ShortRecipeSerializer
 
 from .utils import Base64ImageField
 
@@ -93,11 +93,15 @@ class RecipeListSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, obj):
         user = self.context['request'].user
         recipe = obj
+        if user.is_anonymous:
+            return False
         return Favorite.objects.filter(user=user, recipe=recipe).exists()
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user
         recipe = obj
+        if user.is_anonymous:
+            return False
         return ShoppingCart.objects.filter(user=user, recipe=recipe).exists()
 
 
