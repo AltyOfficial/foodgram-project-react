@@ -12,7 +12,7 @@ from .permissions import IsAuthorOrReadOnly
 from .serializers import (FavoriteSerializer, IngredientSerializer,
                           RecipeSerializer, RecipeListSerializer,
                           ShoppingCartSerializer, TagSerializer)
-from .utils import create_pdf_file, create_text_file, execute_cart_favorite
+from .utils import create_text_file, execute_cart_favorite
 
 
 User = get_user_model()
@@ -47,12 +47,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeListSerializer
         return RecipeSerializer
 
-    def get_serializer_class(self):
-        if self.request.method == 'POST' or self.request.method == 'PATCH':
-            return RecipeSerializer
-
-        return RecipeListSerializer
-
     @action(
         methods=['POST', 'DELETE'],
         detail=True,
@@ -83,5 +77,3 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_shopping_cart(self, request):
         file = create_text_file(request)
         return file
-        # content = 'string'
-        # return HttpResponse(content, content_type='text/plain; charset=utf8')

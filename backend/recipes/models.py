@@ -1,3 +1,4 @@
+from colorfield.fields import ColorField
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -6,7 +7,12 @@ User = get_user_model()
 
 
 class Ingredient(models.Model):
-    name = models.CharField(verbose_name='имя', max_length=200, blank=False, null=False)
+    name = models.CharField(
+        verbose_name='имя',
+        max_length=200,
+        blank=False,
+        null=False
+    )
     measurement_unit = models.CharField(
         verbose_name='мера измерения',
         max_length=200,
@@ -24,19 +30,19 @@ class Ingredient(models.Model):
 
 
 class Tag(models.Model):
+
+    COLOR_PALETTE = [
+        ("#FFFFFF", "white", ),
+        ("#000000", "black", ),
+    ]
+
     name = models.CharField(
         verbose_name='имя',
         max_length=200,
         blank=False,
         null=False
     )
-    color = models.CharField(
-        verbose_name='цвет',
-        max_length=7,
-        blank=False,
-        null=False,
-        default='#010101'
-    )
+    color = ColorField(samples=COLOR_PALETTE)
     slug = models.SlugField(
         verbose_name='slug',
         max_length=200,
